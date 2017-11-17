@@ -55,12 +55,12 @@
           phone: this.phone,
           password: this.password
         }).then(data => {
-          if (data.data.code !== 200) {
+          if (data.data.code === 400) {
             this.tip = '帐号或密码错误'
             this.$refs.topTip.show()
             this.isLoading = false
             this.text = '登陆'
-          } else {
+          } else if (data.data.code === 200) {
             setCookie(data.cookies)
             this.setUserInfo({
               id: data.data.account.id
@@ -69,6 +69,11 @@
             this.$router.replace({
               name: 'user'
             })
+          } else {
+            this.tip = '未知错误'
+            this.$refs.topTip.show()
+            this.isLoading = false
+            this.text = '登陆'
           }
         })
       },
