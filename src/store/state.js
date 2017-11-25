@@ -1,9 +1,8 @@
 import {playMode} from '../utils/config'
-import {getHistory, saveTypes, getUser} from '../common/js/storage'
+import {getHistory, saveTypes} from '../common/js/storage'
 import {Song} from '../common/js/clazz'
 
 const state = {
-  user: getUser(),
   author: 'chen',
   focus: false,
   singer: {},

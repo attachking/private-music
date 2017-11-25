@@ -6,7 +6,7 @@ export const baseParams = {
   format: 'jsonp'
 }
 
-export const ERR_OK = 0
+export const ERR_OK = 200
 
 export const AGENT = 'http://localhost'
 

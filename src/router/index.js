@@ -10,6 +10,7 @@ import topList from '../components/top-list/top-list.vue'
 import search from '../components/search/search.vue'
 import user from '../components/user-center/user-center.vue'
 import login from '../components/login/login.vue'
+import userPlaylistDetail from '../components/user-playlist-detail/user-playlist-detail.vue'
 
 Vue.use(Router)
 
@@ -66,7 +67,14 @@ let router = new Router({
     {
       path: '/user',
       name: 'user',
-      component: user
+      component: user,
+      children: [
+        {
+          path: ':id',
+          name: 'userPlaylistDetail',
+          component: userPlaylistDetail
+        }
+      ]
     },
     {
       path: '/login',

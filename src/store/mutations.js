@@ -55,9 +55,6 @@ const mutations = {
   },
   [types.SET_CONFIRM_SHOW](state, o) {
     state.confirmShow = o
-  },
-  [types.SET_USER](state, o) {
-    state.user = o
   }
 }
 

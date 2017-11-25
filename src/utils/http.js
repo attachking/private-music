@@ -1,6 +1,6 @@
 import $ from 'jquery'
 import {AGENT} from './config'
-import {getCookie} from '../common/js/storage'
+import {getCookie, getUser} from '../common/js/storage'
 
 export function jsonp(url, data) {
   return new Promise((resolve, reject) => {
@@ -25,7 +25,8 @@ export function post(url, data) {
       url: AGENT + url,
       method: 'post',
       data: Object.assign({}, {
-        cookies: getCookie()
+        cookies: getCookie(),
+        uid: getUser().id
       }, data),
       success(res) {
         resolve(res)

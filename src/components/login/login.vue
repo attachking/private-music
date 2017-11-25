@@ -27,8 +27,8 @@
 </template>
 <script>
   import {post} from '../../utils/http'
-  import {setCookie} from '../../common/js/storage'
-  import {mapActions, mapMutations} from 'vuex'
+  import {setCookie, setUser} from '../../common/js/storage'
+  import {mapMutations} from 'vuex'
   import event, {EVENT_TYPES} from '../../utils/event'
 
   export default {
@@ -62,7 +62,7 @@
             this.text = '登陆'
           } else if (data.data.code === 200) {
             setCookie(data.cookies)
-            this.setUserInfo({
+            setUser({
               id: data.data.account.id
             })
             event.$emit(EVENT_TYPES.tip, '登陆成功!')
@@ -90,9 +90,6 @@
         this.$refs.phone.blur()
         this.$refs.password.blur()
       },
-      ...mapActions([
-        'setUserInfo'
-      ]),
       ...mapMutations({
         setFocus: 'SET_FOCUS'
       })

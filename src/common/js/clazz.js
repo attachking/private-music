@@ -11,15 +11,15 @@ export class Singer {
 }
 
 export class Song {
-  constructor({id, mid, singer, name, album, duration, image, url}) {
+  constructor({id, al, ar, dt, name}) {
     this.id = id
-    this.mid = mid
-    this.singer = singer
+    this.singer = ar.map(item => {
+      return item.name
+    }).join('/')
     this.name = name
-    this.album = album
-    this.duration = duration
-    this.image = image
-    this.url = url
+    this.album = al.name
+    this.duration = dt
+    this.image = al.picUrl
   }
 
   getLyric() {

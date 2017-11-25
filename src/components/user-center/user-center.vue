@@ -7,19 +7,34 @@
       <div class="switches-wrapper">
         <switches @switch="switchItem" :switches="switches" :currentIndex="currentIndex"></switches>
       </div>
-      <div ref="playBtn" class="play-btn" @click="random" v-show="!noResult">
+      <div ref="playBtn" class="play-btn" @click="random" v-show="!noResult && currentIndex === 1">
         <i class="icon-play"></i>
         <span class="text">随机播放全部</span>
       </div>
-      <div class="clear">
+      <div class="clear" v-show="currentIndex === 1">
         <span @click="showConfirm">
           <i class="icon-clear"></i>&nbsp;清空
         </span>
       </div>
       <div class="list-wrapper" ref="listWrapper">
-        <scroll ref="favoriteList" class="list-scroll" v-if="currentIndex === 0" :data="favorite">
+        <scroll ref="scroll" class="list-scroll" :data="discList" v-if="currentIndex === 0">
           <div class="list-inner">
-            <songs-list :del="true" :songs="favorite" @select="selectSong" @delete="del"></songs-list>
+            <div class="recommend-list">
+              <ul>
+                <li v-for="(val, key) in discList" class="item" @click="itemSelect(val)">
+                  <div class="icon">
+                    <img width="60" height="60" v-lazy="val.coverImgUrl">
+                  </div>
+                  <div class="text">
+                    <h2 class="name" v-html="val.name"></h2>
+                    <p class="desc">{{val.trackCount}}首歌曲</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="loading-container" v-show="loading">
+              <loading></loading>
+            </div>
           </div>
         </scroll>
         <scroll ref="playList" class="list-scroll" v-if="currentIndex === 1" :data="playHistory">
@@ -31,14 +46,16 @@
       <div class="no-result-wrapper" v-show="noResult">
         <no-result :title="noResultDesc"></no-result>
       </div>
-      <confirm ref="confirm" @confirm="clearAll" :text="confirmText" confirmBtnText="清空"></confirm>
+      <confirm ref="confirm" @confirm="clearAll" text="是否清空播放记录" confirmBtnText="清空"></confirm>
+      <router-view></router-view>
     </div>
   </transition>
 </template>
 <script>
   import {mapGetters, mapActions, mapMutations} from 'vuex'
-  import {playMode} from '../../utils/config'
+  import {playMode, ERR_OK} from '../../utils/config'
   import {playListMixin} from '../../common/js/mixin'
+  import {post} from '../../utils/http'
 
   export default {
     mixins: [playListMixin],
@@ -46,33 +63,29 @@
       return {
         switches: [
           {
-            name: '我喜欢的'
+            name: '我的歌单'
           },
           {
             name: '最近听的'
           }
         ],
-        currentIndex: 0
+        currentIndex: 0,
+        discList: [],
+        loading: true
       }
     },
     computed: {
       ...mapGetters([
-        'favorite',
         'playHistory'
       ]),
       noResultDesc: {
         get() {
-          return this.currentIndex === 0 ? '暂无收藏歌曲' : '你还没有听过歌曲'
+          return this.currentIndex === 0 ? '暂无歌单' : '你还没有听过歌曲'
         }
       },
       noResult: {
         get() {
-          return this.currentIndex === 0 ? !this.favorite.length : !this.playHistory.length
-        }
-      },
-      confirmText: {
-        get() {
-          return this.currentIndex === 0 ? '是否清空收藏列表' : '是否清空播放记录'
+          return this.currentIndex === 0 ? !this.discList.length : !this.playHistory.length
         }
       }
     },
@@ -80,8 +93,6 @@
       ...mapActions([
         'selectPlay',
         'deleteHistory',
-        'toggleFavorite',
-        'removeFavoriteList',
         'removeHistory'
       ]),
       ...mapMutations({
@@ -89,7 +100,6 @@
       }),
       handlePlayList(list) {
         this.$refs.listWrapper.style.bottom = list.length > 0 ? '60px' : ''
-        this.$refs.favoriteList && this.$refs.favoriteList.refresh()
         this.$refs.playList && this.$refs.playList.refresh()
       },
       switchItem(index) {
@@ -114,11 +124,7 @@
         })
       },
       del(song, index) {
-        if (this.currentIndex === 0) {
-          this.toggleFavorite(song)
-        } else {
-          this.deleteHistory(song)
-        }
+        this.deleteHistory(song)
       },
       showConfirm() {
         this.$refs.confirm.show()
@@ -129,15 +135,37 @@
         } else {
           this.removeHistory()
         }
+      },
+      getDiscList() {
+        post('/user/playlist', {}).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.loading = false
+            this.discList = data.data.playlist
+          }
+        })
+      },
+      itemSelect(val) {
+        this.$router.push({
+          name: 'userPlaylistDetail',
+          params: {
+            id: val.id
+          }
+        })
       }
     },
     watch: {
-      currentIndex() {
+      currentIndex(newVal) {
         setTimeout(() => {
-          this.$refs.favoriteList && this.$refs.favoriteList.refresh()
           this.$refs.playList && this.$refs.playList.refresh()
+          this.$refs.listWrapper.style.top = newVal === 0 ? '60px' : '130px'
         }, 20)
       }
+    },
+    mounted() {
+      this.getDiscList()
+    },
+    activated() {
+      this.getDiscList()
     }
   }
 </script>
@@ -201,7 +229,7 @@
     }
     .list-wrapper {
       position: absolute;
-      top: 130px;
+      top: 60px;
       bottom: 0;
       width: 100%;
       .list-scroll {

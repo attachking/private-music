@@ -1,5 +1,5 @@
 import * as types from './mutation-types'
-import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, insertFavorite, removeFavorite, removeAllFavorite, deletePlayHistory, removePlayHistory, setUser} from '../common/js/storage'
+import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, insertFavorite, removeFavorite, removeAllFavorite, deletePlayHistory, removePlayHistory} from '../common/js/storage'
 import {Song} from '../common/js/clazz'
 
 export const setAuthor = function({commit, state}, name) {
@@ -146,9 +146,4 @@ export const addPlayList = function({commit, state}, song) {
   list.push(song)
   commit(types.SET_CURRENT_INDEX, currentIndex)
   commit(types.SET_PLAYLIST, list)
-}
-
-export const setUserInfo = function({commit}, user) {
-  setUser(user)
-  commit(types.SET_USER, user)
 }
