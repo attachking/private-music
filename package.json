@@ -16,7 +16,6 @@
     "create-keyframe-animation": "^0.1.0",
     "fastclick": "^1.0.6",
     "jquery": "^3.2.1",
-    "js-base64": "^2.3.2",
     "lyric-parser": "^1.0.1",
     "vue": "^2.5.3",
     "vue-lazyload": "^1.1.4",

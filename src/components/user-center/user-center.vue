@@ -77,7 +77,8 @@
     },
     computed: {
       ...mapGetters([
-        'playHistory'
+        'playHistory',
+        'favorite'
       ]),
       noResultDesc: {
         get() {
@@ -145,7 +146,9 @@
             this.loading = false
             this.discList = data.data.playlist
             localStorage.setItem(saveTypes.favoriteId, data.data.playlist[0].id)
-            this.getFavoriteList()
+            if (!this.favorite.length) {
+              this.getFavoriteList()
+            }
           }
         })
       },
@@ -175,8 +178,8 @@
           this.$refs.listWrapper.style.top = newVal === 0 ? '60px' : '130px'
         }, 20)
       },
-      $route(newVal) {
-        if (newVal.name === 'user') {
+      favorite(newVal, oldVal) {
+        if (newVal.length !== oldVal.length) {
           this.getDiscList()
         }
       }
