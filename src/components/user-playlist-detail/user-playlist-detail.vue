@@ -5,8 +5,9 @@
 </template>
 <script>
   import {post} from '../../utils/http'
-  import {baseParams, ERR_OK} from '../../utils/config'
+  import {ERR_OK} from '../../utils/config'
   import {Song} from '../../common/js/clazz'
+  import {mapGetters} from 'vuex'
 
   export default {
     data() {
@@ -16,14 +17,26 @@
         coverImgUrl: ''
       }
     },
+    computed: {
+      ...mapGetters([
+        'playList',
+        'userDisc'
+      ])
+    },
     created() {
-      this.getDetail()
+      if (!this.userDisc.id) {
+        this.$router.replace({
+          name: 'user'
+        })
+      } else {
+        this.getDetail()
+      }
     },
     methods: {
       getDetail() {
-        post('/playlist/detail', Object.assign({}, baseParams, {
+        post('/playlist/detail', {
           id: this.$route.params.id
-        })).then(data => {
+        }).then(data => {
           if (data.data.code === ERR_OK) {
             this.title = data.data.playlist.name
             this.coverImgUrl = data.data.playlist.coverImgUrl

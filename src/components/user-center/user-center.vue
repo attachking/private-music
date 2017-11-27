@@ -56,6 +56,7 @@
   import {playMode, ERR_OK} from '../../utils/config'
   import {playListMixin} from '../../common/js/mixin'
   import {post} from '../../utils/http'
+  import {saveTypes, setUser} from '../../common/js/storage'
 
   export default {
     mixins: [playListMixin],
@@ -93,10 +94,12 @@
       ...mapActions([
         'selectPlay',
         'deleteHistory',
-        'removeHistory'
+        'removeHistory',
+        'getFavoriteList'
       ]),
       ...mapMutations({
-        setMode: 'SET_MODE'
+        setMode: 'SET_MODE',
+        setUserDisc: 'SET_USER_DISC'
       }),
       handlePlayList(list) {
         this.$refs.listWrapper.style.bottom = list.length > 0 ? '60px' : ''
@@ -141,14 +144,26 @@
           if (data.data.code === ERR_OK) {
             this.loading = false
             this.discList = data.data.playlist
+            localStorage.setItem(saveTypes.favoriteId, data.data.playlist[0].id)
+            this.getFavoriteList()
           }
         })
       },
       itemSelect(val) {
+        this.setUserDisc(val)
         this.$router.push({
           name: 'userPlaylistDetail',
           params: {
             id: val.id
+          }
+        })
+      },
+      getUserDetail() {
+        post('/user/detail', {}).then(data => {
+          if (data.data.code === ERR_OK) {
+            setUser({
+              id: data.data.profile.userId
+            })
           }
         })
       }
@@ -159,10 +174,16 @@
           this.$refs.playList && this.$refs.playList.refresh()
           this.$refs.listWrapper.style.top = newVal === 0 ? '60px' : '130px'
         }, 20)
+      },
+      $route(newVal) {
+        if (newVal.name === 'user') {
+          this.getDiscList()
+        }
       }
     },
     mounted() {
       this.getDiscList()
+      this.getUserDetail()
     },
     activated() {
       this.getDiscList()

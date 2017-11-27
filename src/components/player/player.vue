@@ -44,7 +44,7 @@
             <div class="progress-bar-wrapper">
               <progress-bar :percent="percent" @progress-change="progressChange"></progress-bar>
             </div>
-            <span class="time time-r">{{timeFormat(currentSong.duration)}}</span>
+            <span class="time time-r">{{timeFormat(currentSong.duration, 'ms')}}</span>
           </div>
           <div class="operators">
             <div class="icon i-left">
@@ -260,7 +260,8 @@
         this.setPlaying(true)
         this.currentLyric.seek(0)
       },
-      timeFormat(time) {
+      timeFormat(time, type) {
+        if (type === 'ms') time = time / 1000
         time = time | 0
         let minute = time / 60 | 0
         let second = time % 60
@@ -275,14 +276,19 @@
       changeMode() {
         this.setMode((this.mode + 1) % 3)
       },
+      getUrl(song) {
+        song.getUrl().then(() => {
+          if (this.playing) {
+            setTimeout(() => {
+              this.songReady && this.$refs.audio.play()
+            }, 20)
+          }
+        })
+      },
       getLyric() {
         this.songReady = false
         this.currentSong.getLyric().then(lyric => {
           this.currentLyric = new Lyric(lyric, this.handleLyric)
-          // 纯音乐时无歌词处理
-          if (/\[00:00:00]/.test(lyric) && !this.currentLyric.lines.length) {
-            this.playingLyric = lyric.replace(/\[00:00:00]/, '')
-          }
           if (this.playing) {
             this.currentLyric.play()
             this.currentLyric.seek(this.currentTime * 1000)
@@ -392,7 +398,7 @@
       playing(newVal) {
         this.$nextTick(() => {
           if (newVal) {
-            this.$refs.audio.play()
+            this.songReady && this.$refs.audio.play()
             this.currentLyric && this.currentLyric.play()
             this.currentLyric && this.currentLyric.seek(this.currentTime * 1000)
           } else {
@@ -407,10 +413,11 @@
         this.currentLyric && this.currentLyric.stop()
         this.playingLyric = ''
         this.currentLyric = null
+        this.getUrl(newVal)
         // 兼容微信
         setTimeout(() => {
           if (this.playing) {
-            this.$refs.audio.play()
+            this.songReady && this.$refs.audio.play()
           }
           this.getLyric()
           this.currentTime = 0
@@ -423,6 +430,13 @@
             this.$refs.lyricList.refresh()
             this.currentLyric && this.currentLyric.seek(this.currentTime * 1000)
           }, 20)
+        }
+      },
+      songReady(newVal) {
+        if (newVal && this.playing) {
+          this.$nextTick(() => {
+            this.$refs.audio.play()
+          })
         }
       }
     }

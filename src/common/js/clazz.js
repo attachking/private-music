@@ -1,6 +1,5 @@
 import {post} from '../../utils/http'
-import {baseParams, ERR_OK} from '../../utils/config'
-import {Base64} from 'js-base64'
+import {ERR_OK} from '../../utils/config'
 
 export class Singer {
   constructor({id, name}) {
@@ -13,9 +12,7 @@ export class Singer {
 export class Song {
   constructor({id, al, ar, dt, name}) {
     this.id = id
-    this.singer = ar.map(item => {
-      return item.name
-    }).join('/')
+    this.singer = ar.map(item => item.name).join('/')
     this.name = name
     this.album = al.name
     this.duration = dt
@@ -26,32 +23,35 @@ export class Song {
     if (this.lyric) {
       return Promise.resolve(this.lyric)
     }
-    return post('/users/agent', Object.assign({}, baseParams, {
-      songmid: this.mid,
-      platform: 'yqq',
-      hostUin: 0,
-      needNewCode: 0,
-      categoryId: 10000000,
-      pcachetime: +new Date(),
-      format: 'json',
-      url: 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg',
-      method: 'get',
-      referer: 'https://c.y.qq.com/',
-      host: 'c.y.qq.com'
-    })).then(res => {
-      try {
-        res = JSON.parse(res.replace(/(\w+\()|(\))/g, ''))
-      } catch (err) {
-        res = {}
-      }
-      if (res.code === ERR_OK) {
-        this.lyric = Base64.decode(res.lyric)
+    return post('/music/lyric', {
+      id: this.id
+    }).then(res => {
+      if (res.data.code === ERR_OK) {
+        this.lyric = res.data.lrc.lyric
         return Promise.resolve(this.lyric)
       } else {
         return Promise.reject(new Error('error format'))
       }
     }).catch((err) => {
       this.lyric = 'no lyric'
+      return Promise.reject(err)
+    })
+  }
+
+  getUrl() {
+    if (this.url) {
+      return Promise.resolve(this.url)
+    }
+    return post('/music/url', {
+      id: this.id
+    }).then(data => {
+      if (data.data.code === ERR_OK) {
+        this.url = data.data.data[0].url
+        return Promise.resolve(data.data.data[0].url)
+      } else {
+        return Promise.reject(data.data.code)
+      }
+    }).catch(err => {
       return Promise.reject(err)
     })
   }

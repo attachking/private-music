@@ -6,6 +6,7 @@ let s = localStorage
 // 保存类型
 export const saveTypes = {
   searchHistory: 'searchHistory',
+  favoriteId: '__favoriteId__',
   favorite: 'favorite',
   playHistory: 'playHistory',
   cookies: '__cookie__',
@@ -55,48 +56,26 @@ export function removeSearchHistory(index) {
   s.setItem(saveTypes.searchHistory, JSON.stringify(h))
 }
 
-// 添加一首歌到我喜欢
-export function insertFavorite(song) {
-  let f = getHistory(saveTypes.favorite)
-  let o = Object.assign({}, song)
-  delete o.lyric
-  f.push(o)
-  s.setItem(saveTypes.favorite, JSON.stringify(f))
-}
-
-// 删除我喜欢的一首歌
-export function removeFavorite(song) {
-  let f = getHistory(saveTypes.favorite)
-  let index = f.findIndex((item) => {
-    return item.id === song.id
-  })
-  if (index !== -1) {
-    f.splice(index, 1)
-  }
-  s.setItem(saveTypes.favorite, JSON.stringify(f))
-}
-
-// 删除所有我喜欢的
-export function removeAllFavorite() {
-  s.removeItem(saveTypes.favorite)
-}
-
 // 添加一首歌到播放历史
 export function insertPlayHistory(song) {
-  let list = getHistory(saveTypes.playHistory)
-  let index = list.findIndex((item) => {
-    return song.id === item.id
-  })
-  if (index !== -1) {
-    list.splice(index, 1)
+  try {
+    let list = getHistory(saveTypes.playHistory)
+    let index = list.findIndex((item) => {
+      return song.id === item.id
+    })
+    if (index !== -1) {
+      list.splice(index, 1)
+    }
+    let o = Object.assign({}, song)
+    delete o.lyric
+    list.unshift(o)
+    if (list.length > MAX_PLAY_HISTORY) {
+      list.pop()
+    }
+    s.setItem(saveTypes.playHistory, JSON.stringify(list))
+  } catch (err) {
+    console.log(err)
   }
-  let o = Object.assign({}, song)
-  delete o.lyric
-  list.unshift(o)
-  if (list.length > MAX_PLAY_HISTORY) {
-    list.pop()
-  }
-  s.setItem(saveTypes.playHistory, JSON.stringify(list))
 }
 
 // 删除一个播放历史

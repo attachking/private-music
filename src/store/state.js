@@ -1,6 +1,5 @@
 import {playMode} from '../utils/config'
 import {getHistory, saveTypes} from '../common/js/storage'
-import {Song} from '../common/js/clazz'
 
 const state = {
   author: 'chen',
@@ -12,10 +11,11 @@ const state = {
   mode: playMode.sequence,
   currentIndex: -1,
   disc: {},
+  userDisc: {},
   topList: [],
   searchHistory: getHistory(saveTypes.searchHistory),
-  favorite: getHistory(saveTypes.favorite).map((song) => new Song(song)),
-  playHistory: getHistory(saveTypes.playHistory).map((song) => new Song(song)),
+  favorite: [],
+  playHistory: getHistory(saveTypes.playHistory),
   // 是否正在显示播放列表
   playListShow: false,
   // 是否正在显示添加歌曲

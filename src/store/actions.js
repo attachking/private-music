@@ -1,5 +1,7 @@
 import * as types from './mutation-types'
-import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, insertFavorite, removeFavorite, removeAllFavorite, deletePlayHistory, removePlayHistory} from '../common/js/storage'
+import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, deletePlayHistory, removePlayHistory} from '../common/js/storage'
+import {post} from '../utils/http'
+import {ERR_OK} from '../utils/config'
 import {Song} from '../common/js/clazz'
 
 export const setAuthor = function({commit, state}, name) {
@@ -92,27 +94,33 @@ export const deleteSongsList = function({commit, state}) {
   commit(types.SET_PLAYLIST, [])
 }
 
-// 添加到/删除我喜欢
+// 添加到我喜欢
 export const toggleFavorite = function({commit, state}, song) {
-  let list = state.favorite.slice(0)
-  let index = list.findIndex((item) => {
-    return item.id === song.id
+  let index = state.favorite.findIndex(item => song.id === item.id)
+  post('/user/like', {
+    id: song.id,
+    like: index === -1
+  }).then(data => {
+    if (data.data.code === ERR_OK) {
+      getFavoriteList({commit, state}, data.data.playlistId)
+    }
   })
-  if (index === -1) {
-    insertFavorite(song)
-    // 从localStorage里取出的列表数据不是Song的实例,因此需要对每一项new Song()
-    commit(types.SET_FAVORITE, getHistory(saveTypes.favorite).map((song) => new Song(song)))
-  } else {
-    list.splice(index, 1)
-    removeFavorite(song)
-    commit(types.SET_FAVORITE, list)
-  }
 }
 
-// 清空我喜欢的列表
-export const removeFavoriteList = function({commit, state}) {
-  commit(types.SET_FAVORITE, [])
-  removeAllFavorite()
+// 我喜欢的列表
+export const getFavoriteList = function({commit}, id) {
+  if (id) {
+    localStorage.setItem(saveTypes.favoriteId, id)
+  }
+  post('/playlist/detail', {
+    id: localStorage.getItem(saveTypes.favoriteId)
+  }).then(data => {
+    if (data.data.code === ERR_OK) {
+      commit(types.SET_FAVORITE, data.data.playlist.tracks.map(item => {
+        return new Song(item)
+      }))
+    }
+  })
 }
 
 // 删除一项播放历史记录

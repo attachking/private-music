@@ -1,6 +1,5 @@
 import * as types from './mutation-types'
 import {insertPlayHistory, getHistory, saveTypes} from '../common/js/storage'
-import {Song} from '../common/js/clazz'
 
 const mutations = {
   [types.SET_SINGER](state, o) {
@@ -25,7 +24,7 @@ const mutations = {
     if (o >= 0) {
       // 歌曲当前索引改变时记录至播放历史
       insertPlayHistory(state.playList[o])
-      state.playHistory = getHistory(saveTypes.playHistory).map((song) => new Song(song))
+      state.playHistory = getHistory(saveTypes.playHistory)
     }
     state.currentIndex = o
   },
@@ -55,6 +54,9 @@ const mutations = {
   },
   [types.SET_CONFIRM_SHOW](state, o) {
     state.confirmShow = o
+  },
+  [types.SET_USER_DISC](state, o) {
+    state.userDisc = o
   }
 }
 
