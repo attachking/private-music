@@ -1,19 +1,20 @@
 <template>
   <div class="rank" ref="rank">
     <scroll :data="topList" class="toplist" ref="topList">
-      <ul>
-        <li @click="selectItem(item)" class="item" v-for="item in topList">
-          <div class="icon">
-            <img width="100" height="100" v-lazy="item.picUrl"/>
-          </div>
-          <ul class="songlist">
-            <li class="song" v-for="(song,index) in item.songList">
-              <span>{{index + 1}}</span>
-              <span>{{song.songname}}-{{song.singername}}</span>
-            </li>
-          </ul>
-        </li>
-      </ul>
+      <div class="recommend-list">
+        <h1 class="list-title">精品歌单</h1>
+        <ul>
+          <li v-for="(val, key) in topList" class="item" @click="selectItem(val)">
+            <div class="icon">
+              <img width="60" height="60" v-lazy="val.coverImgUrl">
+            </div>
+            <div class="text">
+              <h2 class="name" v-html="val.name"></h2>
+              <p class="desc">{{val.copywriter}}</p>
+            </div>
+          </li>
+        </ul>
+      </div>
       <div class="loading-container" v-show="!topList.length">
         <loading></loading>
       </div>
@@ -23,8 +24,8 @@
 </template>
 <script>
   import {playListMixin} from '../../common/js/mixin'
-  import {jsonp} from '../../utils/http'
-  import {baseParams, ERR_OK} from '../../utils/config'
+  import {post} from '../../utils/http'
+  import {ERR_OK} from '../../utils/config'
   import {mapMutations} from 'vuex'
 
   export default {
@@ -39,18 +40,9 @@
     },
     methods: {
       getTopList() {
-        jsonp('https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg', Object.assign({}, baseParams, {
-          uin: 0,
-          needNewCode: 1,
-          platform: 'h5'
-        })).then(res => {
-          if (res.code === ERR_OK) {
-            for (let i = 0; i < res.data.topList.length; i++) {
-              if (res.data.topList[i].id === 201) {
-                res.data.topList.splice(i, 1)
-              }
-            }
-            this.topList = res.data.topList
+        post('/playlist/highQuality', {}).then(res => {
+          if (res.data.code === ERR_OK) {
+            this.topList = res.data.playlists
           }
         })
       },
@@ -85,36 +77,6 @@
     .toplist {
       height: 100%;
       overflow: hidden;
-      .item {
-        display: flex;
-        margin: 0 20px;
-        padding-top: 20px;
-        height: 100px;
-        &:last-child {
-          padding-bottom: 20px
-        }
-        .icon {
-          flex: 0 0 100px;
-          width: 100px;
-          height: 100px;
-        }
-        .songlist {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding: 0 20px;
-          height: 100px;
-          overflow: hidden;
-          background: @color-highlight-background;
-          color: @color-text-d;
-          font-size: @font-size-small;
-          .song {
-            .no-wrap();
-            line-height: 26px;
-          }
-        }
-      }
       .loading-container {
         position: absolute;
         width: 100%;

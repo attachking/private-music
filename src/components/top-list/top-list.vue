@@ -1,29 +1,23 @@
 <template>
   <transition name="slide">
-    <music-list :rank="true" :bgImage="image" :title="topList.topTitle" :songs="songs"></music-list>
+    <music-list :rank="true" :bgImage="image" :title="title" :songs="songs"></music-list>
   </transition>
 </template>
 <script>
   import {mapGetters} from 'vuex'
-  import {jsonp} from '../../utils/http'
-  import {baseParams, ERR_OK} from '../../utils/config'
-  import {createSong} from '../../common/js/clazz'
+  import {post} from '../../utils/http'
+  import {ERR_OK} from '../../utils/config'
+  import {Song} from '../../common/js/clazz'
 
   export default {
     computed: {
-      ...mapGetters(['topList']),
-      image: {
-        get() {
-          if (this.songs.length) {
-            return this.songs[0].image
-          }
-          return ''
-        }
-      }
+      ...mapGetters(['topList'])
     },
     data() {
       return {
-        songs: []
+        songs: [],
+        image: '',
+        title: ''
       }
     },
     created() {
@@ -37,29 +31,15 @@
     },
     methods: {
       getDetail() {
-        jsonp('https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg', Object.assign({}, baseParams, {
-          topid: this.$route.params.id,
-          needNewCode: 1,
-          uin: 0,
-          tpl: 3,
-          page: 'detail',
-          type: 'top',
-          platform: 'h5'
-        })).then(data => {
-          if (data.code === ERR_OK) {
-            this.songs = this.normalizeSongs(data.songlist)
+        post('/playlist/detail', {
+          id: this.$route.params.id
+        }).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.title = data.data.playlist.name
+            this.songs = data.data.playlist.tracks.map(item => new Song(item))
+            this.image = data.data.playlist.coverImgUrl
           }
         })
-      },
-      normalizeSongs(list) {
-        let ret = []
-        list.forEach(item => {
-          let music = item.data
-          if (music.songid && music.albummid) {
-            ret.push(createSong(music))
-          }
-        })
-        return ret
       }
     }
   }

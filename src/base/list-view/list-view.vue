@@ -125,12 +125,6 @@
         this.translate = translate
       },
       setSinger(singer) {
-        this.$router.push({
-          name: 'singerDetail',
-          params: {
-            id: singer.id
-          }
-        })
         this.$emit('select', singer)
       },
       refresh() {

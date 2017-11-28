@@ -29,8 +29,8 @@
               <div v-if="currentLyric">
                 <p ref="lyricLine" class="text" :class="{'current': currentLineNum === index}"
                    v-for="(line, index) in currentLyric.lines">{{line.txt}}</p>
-                <p class="text" v-if="!currentLyric.lines.length">{{playingLyric}}</p>
               </div>
+              <p class="text" v-if="!currentLyric">{{playingLyric}}</p>
             </div>
           </scroll>
         </div>
@@ -134,7 +134,7 @@
       },
       percent: {
         get() {
-          return this.currentTime / this.currentSong.duration
+          return this.currentTime / (this.currentSong.duration / 1000)
         }
       },
       modeClass: {
@@ -269,7 +269,7 @@
         return `${minute}:${second}`
       },
       progressChange(percent) {
-        let time = percent * this.currentSong.duration
+        let time = percent * (this.currentSong.duration / 1000)
         this.$refs.audio.currentTime = time
         this.currentLyric && this.currentLyric.seek(time * 1000)
       },
@@ -295,7 +295,9 @@
           }
           this.songReady = true
         }).catch(() => {
+          this.songReady = true
           this.currentLyric = null
+          this.playingLyric = this.currentSong.lyric
         })
       },
       handleLyric({lineNum, txt}) {

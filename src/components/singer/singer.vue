@@ -1,6 +1,6 @@
 <template>
   <div class="singer" ref="singer">
-    <list-view :data="singerList" @select="setSinger" ref="list"></list-view>
+    <list-view :data="singerList" @select="select" ref="list"></list-view>
     <router-view></router-view>
   </div>
 </template>
@@ -31,6 +31,15 @@
       ...mapMutations({
         setSinger: 'SET_SINGER'
       }),
+      select(singer) {
+        this.$router.push({
+          name: 'singerDetail',
+          params: {
+            id: singer.id
+          }
+        })
+        this.setSinger(singer)
+      },
       getSingerList() {
         post('/singer/list', this.search).then(data => {
           if (data.data.code === ERR_OK) {
@@ -53,7 +62,7 @@
               avatar: item.img1v1Url
             }))
           }
-          let key = code(item.name.charAt(0))
+          let key = code(item.name.charAt(0)).toUpperCase()
           if (!map[key]) {
             map[key] = {
               title: key,

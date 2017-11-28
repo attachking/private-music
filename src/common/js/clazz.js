@@ -17,25 +17,33 @@ export class Song {
     this.album = opts.album || opts.al.name
     this.duration = opts.duration || opts.dt
     this.image = opts.image || opts.al.picUrl
-    this.url = opts.url
+    opts.url && (this.url = opts.url)
   }
 
   getLyric() {
     if (this.lyric) {
       return Promise.resolve(this.lyric)
     }
-    return post('/music/lyric', {
-      id: this.id
-    }).then(res => {
-      if (res.data.code === ERR_OK) {
-        this.lyric = res.data.lrc.lyric
-        return Promise.resolve(this.lyric)
-      } else {
-        return Promise.reject(new Error('error format'))
-      }
-    }).catch((err) => {
-      this.lyric = 'no lyric'
-      return Promise.reject(err)
+    return new Promise((resolve, reject) => {
+      post('/music/lyric', {
+        id: this.id
+      }).then(res => {
+        if (res.data.code === ERR_OK) {
+          if (res.data.nolyric) {
+            this.lyric = '暂无歌词~'
+            reject(new Error(this.lyric))
+          } else {
+            this.lyric = res.data.lrc.lyric
+            resolve(this.lyric)
+          }
+        } else {
+          this.lyric = '暂无歌词~'
+          reject(new Error(this.lyric))
+        }
+      }).catch(() => {
+        this.lyric = 'no lyric'
+        reject(new Error(this.lyric))
+      })
     })
   }
 
