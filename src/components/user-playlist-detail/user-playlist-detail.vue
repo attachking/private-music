@@ -1,6 +1,6 @@
 <template>
   <transition name="slide">
-    <music-list :bgImage="coverImgUrl" :title="title" :songs="songs"></music-list>
+    <music-list :bgImage="coverImgUrl" :title="title" :songs="songs" :del="true" @delete="del"></music-list>
   </transition>
 </template>
 <script>
@@ -43,6 +43,17 @@
             this.songs = data.data.playlist.tracks.map(item => {
               return new Song(item)
             })
+          }
+        })
+      },
+      del(song, index) {
+        post('/playlist/track', {
+          pid: this.$route.params.id,
+          tracks: song.id,
+          op: 'del'
+        }).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.getDetail()
           }
         })
       }

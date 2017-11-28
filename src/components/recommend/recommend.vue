@@ -6,7 +6,7 @@
           <slider v-if="sliders.length">
             <div v-for="(val, key) in sliders">
               <a :href="val.linkUrl">
-                <img :src="val.picUrl" @load="loadImage">
+                <img :src="val.pic" @load="loadImage" :title="val.typeTitle">
               </a>
             </div>
           </slider>
@@ -16,11 +16,11 @@
           <ul>
             <li v-for="(val, key) in discList" class="item" @click="itemSelect(val)">
               <div class="icon">
-                <img width="60" height="60" v-lazy="val.imgurl">
+                <img width="60" height="60" v-lazy="val.picUrl">
               </div>
               <div class="text">
-                <h2 class="name" v-html="val.creator.name"></h2>
-                <p class="desc" v-html="val.dissname"></p>
+                <h2 class="name" v-html="val.name"></h2>
+                <p class="desc">{{val.copywriter}}</p>
               </div>
             </li>
           </ul>
@@ -35,8 +35,8 @@
 </template>
 
 <script>
-  import {jsonp, post} from '../../utils/http'
-  import {ERR_OK, baseParams} from '../../utils/config'
+  import {post} from '../../utils/http'
+  import {ERR_OK} from '../../utils/config'
   import {playListMixin} from '../../common/js/mixin'
   import {mapMutations} from 'vuex'
 
@@ -53,9 +53,9 @@
     },
     methods: {
       getRecommend() {
-        jsonp('https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg', {}).then(data => {
-          if (data.code === ERR_OK) {
-            this.sliders = data.data.slider
+        post('/banner', {}).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.sliders = data.data.banners
           }
         })
       },
@@ -65,24 +65,10 @@
         this.checkLoaded = true
       },
       getDiscList() {
-        post('/users/agent', Object.assign({}, baseParams,
-          {
-            platform: 'yqq',
-            hostUin: 0,
-            sin: 0,
-            ein: 29,
-            sortId: 5,
-            needNewCode: 0,
-            categoryId: 10000000,
-            rnd: Math.random(),
-            format: 'json',
-            url: 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg',
-            method: 'get',
-            referer: 'https://c.y.qq.com/',
-            host: 'c.y.qq.com'
-          })
-        ).then(data => {
-          this.discList = data.data.list
+        post('/recommend/personalized', {}).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.discList = data.data.result
+          }
           this.loading = false
         }).catch(() => {
           this.loading = false
@@ -93,7 +79,7 @@
         this.$router.push({
           name: 'disc',
           params: {
-            id: item.dissid
+            id: item.id
           }
         })
       },

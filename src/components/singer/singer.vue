@@ -5,10 +5,12 @@
   </div>
 </template>
 <script>
-  import {jsonp} from '../../utils/http'
+  import {post} from '../../utils/http'
   import {Singer} from '../../common/js/clazz'
   import {mapMutations} from 'vuex'
   import {playListMixin} from '../../common/js/mixin'
+  import {ERR_OK} from '../../utils/config'
+  import code from '../../common/js/characters-letter'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -19,8 +21,8 @@
     data() {
       return {
         search: {
-          pagesize: 100,
-          pagenum: 1
+          limit: 100,
+          offset: 0
         },
         singerList: []
       }
@@ -30,15 +32,10 @@
         setSinger: 'SET_SINGER'
       }),
       getSingerList() {
-        jsonp('https://c.y.qq.com/v8/fcg-bin/v8.fcg', Object.assign({
-          channel: 'singer',
-          page: 'list',
-          key: 'all_all_all',
-          hostUin: 0,
-          needNewCode: 0,
-          platform: 'yqq'
-        }, this.search)).then(data => {
-          this.normalSingerList(data.data.list)
+        post('/singer/list', this.search).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.normalSingerList(data.data.artists)
+          }
         })
       },
       normalSingerList(list) {
@@ -51,11 +48,12 @@
         list.forEach((item, index) => {
           if (index < HOT_SINGER_LEN) {
             map.hot.items.push(new Singer({
-              id: item.Fsinger_mid,
-              name: item.Fsinger_name
+              id: item.id,
+              name: item.name,
+              avatar: item.img1v1Url
             }))
           }
-          let key = item.Findex
+          let key = code(item.name.charAt(0))
           if (!map[key]) {
             map[key] = {
               title: key,
@@ -63,8 +61,9 @@
             }
           }
           map[key].items.push(new Singer({
-            id: item.Fsinger_mid,
-            name: item.Fsinger_name
+            id: item.id,
+            name: item.name,
+            avatar: item.img1v1Url
           }))
         })
         let nor = []

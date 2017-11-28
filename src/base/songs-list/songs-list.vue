@@ -1,7 +1,7 @@
 <template>
   <div class="song-list">
-    <ul>
-      <li class="item" v-for="(song, index) in songs" @click="selectItem(song, index)">
+    <transition-group name="list" tag="ul">
+      <li :key="song.id" class="item" v-for="(song, index) in songs" @click="selectItem(song, index)" @transitionend="transitionend">
         <div class="rank" v-show="rank">
           <span :class="getRankCls(index)" v-text="getRankText(index)"></span>
         </div>
@@ -13,7 +13,7 @@
           <i class="icon-delete"></i>
         </div>
       </li>
-    </ul>
+    </transition-group>
   </div>
 </template>
 <script>
@@ -31,6 +31,11 @@
       del: {
         type: Boolean,
         default: false
+      }
+    },
+    data() {
+      return {
+        isEnd: false
       }
     },
     methods: {
@@ -56,6 +61,12 @@
       },
       selectDel(song, index) {
         this.$emit('delete', song, index)
+      },
+      transitionend() {
+        // 过渡效果完毕后派发事件
+        if (this.isEnd) return
+        this.$emit('end')
+        this.isEnd = true
       }
     }
   }
@@ -71,6 +82,12 @@
       box-sizing: border-box;
       height: 64px;
       font-size: @font-size-medium;
+      &.list-enter-active, &.list-leave-active{
+        transition: all 0.1s;
+      }
+      &.list-enter, &.list-leave-to{
+        height: 0;
+      }
       .rank{
         flex: 0 0 25px;
         width: 25px;

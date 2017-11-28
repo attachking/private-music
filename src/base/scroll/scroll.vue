@@ -60,7 +60,7 @@
       // 当数据更新后,刷新scroll的延时
       refreshDelay: {
         type: Number,
-        default: 20
+        default: 200
       }
     },
     mounted() {
@@ -131,6 +131,13 @@
       data() {
         setTimeout(() => {
           this.refresh()
+          // 容器刷新后派发scroll事件，重新计算容器位置
+          setTimeout(() => {
+            this.$emit('scroll', {
+              x: this.scroll.x,
+              y: this.scroll.y
+            })
+          }, 20)
         }, this.refreshDelay)
       }
     }

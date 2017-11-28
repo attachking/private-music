@@ -14,9 +14,9 @@
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
-    <scroll :data="songs" :probe-type="3" :listen-scroll="true" @scroll="scroll" class="list" ref="list">
+    <scroll :data="songs" :probe-type="3" :listen-scroll="true" @scroll="scroll" @end="transitionend" class="list" ref="list">
       <div class="song-list-wrapper">
-        <songs-list :rank="rank" :songs="songs" @select="select"></songs-list>
+        <songs-list :rank="rank" :songs="songs" @select="select" @delete="selectDelete" :del="del"></songs-list>
       </div>
       <div v-show="!songs.length" class="loading-container">
         <loading></loading>
@@ -50,6 +50,10 @@
         default: ''
       },
       rank: {
+        type: Boolean,
+        default: false
+      },
+      del: {
         type: Boolean,
         default: false
       }
@@ -124,6 +128,9 @@
           index: index
         })
       },
+      selectDelete(song, index) {
+        this.$emit('delete', song, index)
+      },
       randomPlay() {
         let index = Math.floor(Math.random() * this.songs.length)
         this.selectPlay({
@@ -131,6 +138,11 @@
           index: index
         })
         this.setMode(playMode.random)
+      },
+      transitionend() {
+        setTimeout(() => {
+          this.$refs.list.refresh()
+        }, 20)
       },
       handlePlayList(list) {
         this.$refs.list && (this.$refs.list.$el.style.bottom = list.length > 0 ? '60px' : 0)

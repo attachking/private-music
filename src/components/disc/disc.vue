@@ -1,13 +1,13 @@
 <template>
   <transition name="slide">
-    <music-list :bgImage="disc.imgurl" :title="disc.dissname" :songs="songs"></music-list>
+    <music-list :bgImage="coverImgUrl" :title="title" :songs="songs" ></music-list>
   </transition>
 </template>
 <script>
   import {mapGetters} from 'vuex'
   import {post} from '../../utils/http'
-  import {baseParams, ERR_OK} from '../../utils/config'
-  import {createSong} from '../../common/js/clazz'
+  import {ERR_OK} from '../../utils/config'
+  import {Song} from '../../common/js/clazz'
 
   export default {
     computed: {
@@ -15,11 +15,13 @@
     },
     data() {
       return {
-        songs: []
+        songs: [],
+        title: '',
+        coverImgUrl: ''
       }
     },
     created() {
-      if (this.disc.dissid) {
+      if (this.disc.id) {
         this.getDetail()
       } else {
         this.$router.push({
@@ -29,34 +31,17 @@
     },
     methods: {
       getDetail() {
-        post('/users/agent', Object.assign({}, baseParams, {
-          disstid: this.$route.params.id,
-          type: 1,
-          json: 1,
-          utf8: 1,
-          onlysong: 0,
-          platform: 'yqq',
-          hostUin: 0,
-          needNewCode: 0,
-          format: 'json',
-          url: 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
-          method: 'get',
-          referer: 'https://c.y.qq.com/',
-          host: 'c.y.qq.com'
-        })).then(data => {
-          if (data.code === ERR_OK) {
-            this.songs = this.normalizeSongs(data.cdlist[0].songlist)
+        post('/playlist/detail', {
+          id: this.$route.params.id
+        }).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.title = data.data.playlist.name
+            this.coverImgUrl = data.data.playlist.coverImgUrl
+            this.songs = data.data.playlist.tracks.map(item => {
+              return new Song(item)
+            })
           }
         })
-      },
-      normalizeSongs(list) {
-        let ret = []
-        list.forEach(music => {
-          if (music.songid && music.albummid) {
-            ret.push(createSong(music))
-          }
-        })
-        return ret
       }
     }
   }

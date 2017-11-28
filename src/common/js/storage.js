@@ -126,3 +126,9 @@ export function setCookie(arr) {
 export function getCookie() {
   return s.getItem(saveTypes.cookies) || ''
 }
+
+// 退出登录
+export function signOut() {
+  s.removeItem(saveTypes.cookies)
+  s.removeItem(saveTypes.user)
+}

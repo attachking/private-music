@@ -2,21 +2,22 @@ import {post} from '../../utils/http'
 import {ERR_OK} from '../../utils/config'
 
 export class Singer {
-  constructor({id, name}) {
+  constructor({id, name, avatar}) {
     this.id = id
     this.name = name
-    this.avatar = `https://y.gtimg.cn/music/photo_new/T001R300x300M000${id}.jpg?max_age=2592000`
+    this.avatar = avatar
   }
 }
 
 export class Song {
-  constructor({id, al, ar, dt, name}) {
-    this.id = id
-    this.singer = ar.map(item => item.name).join('/')
-    this.name = name
-    this.album = al.name
-    this.duration = dt
-    this.image = al.picUrl
+  constructor(opts) {
+    this.id = opts.id
+    this.singer = opts.singer || opts.ar.map(item => item.name).join('/')
+    this.name = opts.name || opts.name
+    this.album = opts.album || opts.al.name
+    this.duration = opts.duration || opts.dt
+    this.image = opts.image || opts.al.picUrl
+    this.url = opts.url
   }
 
   getLyric() {

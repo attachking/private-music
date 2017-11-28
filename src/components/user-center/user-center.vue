@@ -4,6 +4,9 @@
       <div class="back" @click="back">
         <i class="icon-back"></i>
       </div>
+      <div class="title">
+        <p>{{nickname}}</p>
+      </div>
       <div class="switches-wrapper">
         <switches @switch="switchItem" :switches="switches" :currentIndex="currentIndex"></switches>
       </div>
@@ -72,7 +75,8 @@
         ],
         currentIndex: 0,
         discList: [],
-        loading: true
+        loading: true,
+        nickname: ''
       }
     },
     computed: {
@@ -165,8 +169,10 @@
         post('/user/detail', {}).then(data => {
           if (data.data.code === ERR_OK) {
             setUser({
-              id: data.data.profile.userId
+              id: data.data.profile.userId,
+              nickName: data.data.profile.nickname
             })
+            this.nickname = data.data.profile.nickname
           }
         })
       }
@@ -175,7 +181,7 @@
       currentIndex(newVal) {
         setTimeout(() => {
           this.$refs.playList && this.$refs.playList.refresh()
-          this.$refs.listWrapper.style.top = newVal === 0 ? '60px' : '130px'
+          this.$refs.listWrapper.style.top = newVal === 0 ? '100px' : '170px'
         }, 20)
       },
       favorite(newVal, oldVal) {
@@ -208,6 +214,11 @@
     }
     &.slide-enter, &.slide-leave-to {
       transform: translate3d(100%, 0, 0);
+    }
+    .title{
+      margin: 15px 0 20px 0;
+      color: @color-theme;
+      text-align: center;
     }
     .back {
       position: absolute;
@@ -253,7 +264,7 @@
     }
     .list-wrapper {
       position: absolute;
-      top: 60px;
+      top: 100px;
       bottom: 0;
       width: 100%;
       .list-scroll {
