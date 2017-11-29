@@ -11,10 +11,11 @@
         </div>
         <scroll ref="listContent" :data="playList" class="list-content" :refreshDelay="refreshDelay">
           <transition-group ref="list" name="list" tag="ul">
-            <li :key="item.id" class="item" v-for="(item, index) in playList" @click="selectItem(item, index)" ref="listItem">
+            <li :key="item.id" class="item" v-for="(item, index) in playList" @click="selectItem(item, index)"
+                ref="listItem">
               <i class="current" :class="getCurrentIcon(index)"></i>
               <span class="text">{{item.name}}</span>
-              <span @click.stop="toggleFavorite(item)" class="like">
+              <span @click.stop="favoriteHandle(item)" class="like">
                 <i :class="getFavoriteIcon(item)"></i>
               </span>
               <span @click.stop="deleteOne(index)" class="delete">
@@ -34,6 +35,7 @@
         </div>
       </div>
       <confirm ref="confirm" @confirm="confirmClear" text="是否清空播放列表" confirmBtnText="清空"></confirm>
+      <confirm ref="confirmLogin" @confirm="loginConfirm" text="您还尚未登录,是否前往登录?" confirmBtnText="确定"></confirm>
       <add-song v-model="show"></add-song>
     </div>
   </transition>
@@ -41,6 +43,7 @@
 <script>
   import {mapActions, mapGetters, mapMutations} from 'vuex'
   import {playMode} from '../../utils/config'
+  import {isLogin} from '../../common/js/storage'
 
   export default {
     name: 'play-list',
@@ -144,6 +147,19 @@
         setTimeout(() => {
           this.$refs.listContent.scrollToElement(this.$refs.listItem[index], 300)
         }, 20)
+      },
+      favoriteHandle(item) {
+        if (!isLogin()) {
+          this.$refs.confirmLogin.show()
+          return
+        }
+        this.toggleFavorite(item)
+      },
+      loginConfirm() {
+        this.$router.push({
+          name: 'login'
+        })
+        this.showFlag = false
       }
     },
     watch: {
@@ -167,7 +183,7 @@
   @import "../../common/styles/_vars.less";
   @import "../../common/styles/_mixin.less";
 
-  .playlist{
+  .playlist {
     position: fixed;
     left: 0;
     right: 0;
@@ -175,112 +191,112 @@
     bottom: 0;
     z-index: 200;
     background-color: @color-background-d;
-    &.list-fade-enter-active, &.list-fade-leave-active{
+    &.list-fade-enter-active, &.list-fade-leave-active {
       transition: opacity 0.3s;
-      .list-wrapper{
+      .list-wrapper {
         transition: all 0.3s;
       }
     }
-    &.list-fade-enter, &.list-fade-leave-to{
+    &.list-fade-enter, &.list-fade-leave-to {
       opacity: 0;
-      .list-wrapper{
+      .list-wrapper {
         transform: translate3d(0, 100%, 0);
       }
     }
-    .list-wrapper{
+    .list-wrapper {
       position: absolute;
       left: 0;
       bottom: 0;
       width: 100%;
       background-color: @color-highlight-background;
-      .list-header{
+      .list-header {
         position: relative;
         padding: 20px 30px 10px 20px;
-        .title{
+        .title {
           display: flex;
           align-items: center;
-          .icon{
+          .icon {
             margin-right: 10px;
             font-size: 30px;
             color: @color-theme-d;
           }
-          .text{
+          .text {
             flex: 1;
             font-size: @font-size-medium;
             color: @color-text-l;
           }
-          .clear{
+          .clear {
             .extend-click();
-            .icon-clear{
+            .icon-clear {
               font-size: @font-size-medium;
               color: @color-text-d;
             }
           }
         }
       }
-      .list-content{
+      .list-content {
         max-height: 240px;
         overflow: hidden;
-        .item{
+        .item {
           display: flex;
           align-items: center;
           height: 40px;
           padding: 0 30px 0 20px;
           overflow: hidden;
-          &.list-enter-active, &.list-leave-active{
+          &.list-enter-active, &.list-leave-active {
             transition: all 0.1s;
           }
-          &.list-enter, &.list-leave-to{
+          &.list-enter, &.list-leave-to {
             height: 0;
           }
-          .current{
+          .current {
             flex: 0 0 20px;
             width: 20px;
             font-size: @font-size-small;
             color: @color-theme-d;
           }
-          .text{
+          .text {
             flex: 1;
             .no-wrap();
             font-size: @font-size-medium;
             color: @color-text-d;
           }
-          .like{
+          .like {
             .extend-click();
             margin-right: 15px;
             font-size: @font-size-small;
             color: @color-theme;
-            .icon-favorite{
+            .icon-favorite {
               color: @color-sub-theme;
             }
           }
-          .delete{
+          .delete {
             .extend-click();
             font-size: @font-size-small;
             color: @color-theme;
           }
         }
       }
-      .list-operate{
+      .list-operate {
         width: 140px;
         margin: 20px auto 30px auto;
-        .add{
+        .add {
           display: flex;
           align-items: center;
           padding: 8px 16px;
           border: 1px solid @color-text-l;
           border-radius: 100px;
           color: @color-text-l;
-          .icon-add{
+          .icon-add {
             margin-right: 5px;
             font-size: @font-size-small-s;
           }
-          .text{
+          .text {
             font-size: @font-size-small;
           }
         }
       }
-      .list-close{
+      .list-close {
         text-align: center;
         line-height: 50px;
         background: @color-background;

@@ -62,11 +62,12 @@
             <div class="icon i-right" :class="disabledClass">
               <i class="icon-next" @click="next"></i>
             </div>
-            <div class="icon i-right" @click.stop.prevent="toggleFavorite(currentSong)">
+            <div class="icon i-right" @click.stop.prevent="favoriteHandle(currentSong)">
               <i class="icon" :class="getFavoriteIcon()"></i>
             </div>
           </div>
         </div>
+        <confirm ref="confirm" @confirm="loginConfirm" text="您还尚未登录,是否前往登录?" confirmBtnText="确定"></confirm>
       </div>
     </transition>
     <transition name="mini">
@@ -90,7 +91,8 @@
     </transition>
     <play-list v-model="showPlayList"></play-list>
     <user-play-list v-model="userPlayListShow" :song="addSong"></user-play-list>
-    <audio :src="currentSong.url" ref="audio" @play="ready" @timeupdate="updateTime" @error="error" @ended="end"></audio>
+    <audio :src="currentSong.url" ref="audio" @play="ready" @timeupdate="updateTime" @error="error"
+           @ended="end"></audio>
   </div>
 </template>
 <script>
@@ -99,6 +101,7 @@
   import {prefixStyle} from '../../common/js/dom'
   import {playMode} from '../../utils/config'
   import Lyric from 'lyric-parser'
+  import {isLogin} from '../../common/js/storage'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -392,8 +395,25 @@
         }
       },
       add(song) {
+        if (!isLogin()) {
+          this.$refs.confirm.show()
+          return
+        }
         this.userPlayListShow = true
         this.addSong = song
+      },
+      favoriteHandle(song) {
+        if (!isLogin()) {
+          this.$refs.confirm.show()
+          return
+        }
+        this.toggleFavorite(song)
+      },
+      loginConfirm() {
+        this.setFullScreen(false)
+        this.$router.push({
+          name: 'login'
+        })
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
@@ -493,14 +513,14 @@
             transform: rotate(-90deg);
           }
         }
-        .more{
+        .more {
           position: absolute;
           top: 0;
           right: 6px;
           z-index: 50;
           width: 45px;
           height: 45px;
-          .iconfontcjy{
+          .iconfontcjy {
             color: @color-theme;
             font-size: 42px;
           }
@@ -756,6 +776,7 @@
       }
     }
   }
+
   @keyframes rotate {
     0% {
       transform: rotate(0);

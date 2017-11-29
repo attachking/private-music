@@ -1,5 +1,5 @@
 import * as types from './mutation-types'
-import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, deletePlayHistory, removePlayHistory} from '../common/js/storage'
+import {addSearchHistory, getHistory, saveTypes, removeSearchHistory, deletePlayHistory, removePlayHistory, isLogin} from '../common/js/storage'
 import {post} from '../utils/http'
 import {ERR_OK} from '../utils/config'
 import {Song} from '../common/js/clazz'
@@ -96,6 +96,9 @@ export const deleteSongsList = function({commit, state}) {
 
 // 添加到/删除我喜欢
 export const toggleFavorite = function({commit, state}, song) {
+  if (!isLogin()) {
+    return
+  }
   let index = state.favorite.findIndex(item => song.id === item.id)
   post('/user/like', {
     id: song.id,
@@ -110,6 +113,10 @@ export const toggleFavorite = function({commit, state}, song) {
 
 // 我喜欢的列表
 export const getFavoriteList = function({commit}, id) {
+  if (!isLogin()) {
+    commit(types.SET_FAVORITE, [])
+    return
+  }
   if (id) {
     localStorage.setItem(saveTypes.favoriteId, id)
   }
@@ -124,6 +131,11 @@ export const getFavoriteList = function({commit}, id) {
 
 // 用户歌单
 export const setUserPlayList = function({commit, state}) {
+  if (!isLogin()) {
+    commit(types.SET_USER_PLAY_LIST, [])
+    localStorage.removeItem(saveTypes.favoriteId)
+    return
+  }
   post('/user/playlist', {}).then(data => {
     if (data.data.code === ERR_OK) {
       commit(types.SET_USER_PLAY_LIST, data.data.playlist)

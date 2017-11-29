@@ -1,4 +1,4 @@
-import {getUser} from '../common/js/storage'
+import {isLogin} from '../common/js/storage'
 import Vue from 'vue'
 import Router from 'vue-router'
 import recommend from '../components/recommend/recommend.vue'
@@ -85,7 +85,7 @@ let router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.name === 'user' && !getUser().id) {
+  if (to.name === 'user' && !isLogin()) {
     next({
       name: 'login'
     })

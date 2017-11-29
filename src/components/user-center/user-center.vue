@@ -102,7 +102,9 @@
       ...mapActions([
         'selectPlay',
         'deleteHistory',
-        'removeHistory'
+        'removeHistory',
+        'setUserPlayList',
+        'getFavoriteList'
       ]),
       ...mapMutations({
         setMode: 'SET_MODE',
@@ -167,6 +169,8 @@
       },
       exit() {
         signOut()
+        this.setUserPlayList()
+        this.getFavoriteList()
         this.$router.push({
           name: 'recommend'
         })
@@ -182,6 +186,7 @@
     },
     mounted() {
       this.getUserDetail()
+      this.setUserPlayList()
     }
   }
 </script>
