@@ -19,7 +19,7 @@
   </div>
 </template>
 <script>
-  import {mapGetters, mapMutations} from 'vuex'
+  import {mapGetters, mapMutations, mapActions} from 'vuex'
   import event, {EVENT_TYPES} from './utils/event'
 
   export default {
@@ -45,6 +45,9 @@
         setPlayListShow: 'SET_PLAY_LIST_SHOW',
         setAddSongShow: 'SET_ADD_SONG_SHOW'
       }),
+      ...mapActions([
+        'setUserPlayList'
+      ]),
       // 设备准备完毕后
       onDeviceReady() {
         document.addEventListener('backbutton', this.onBackKeyDown, false)
@@ -156,6 +159,7 @@
         this.tip = text
         this.$refs.topTip.show()
       })
+      this.setUserPlayList()
     }
   }
 </script>

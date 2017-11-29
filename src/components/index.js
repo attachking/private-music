@@ -20,6 +20,7 @@ import switches from '../base/switches/switches.vue'
 import topTip from '../base/top-tip/top-tip.vue'
 import midTip from '../base/mid-tip/mid-tip.vue'
 import fullImg from '../base/full-img/full-img.vue'
+import userPlayList from './user-play-list/user-play-list.vue'
 
 let components = [
   mHeader,
@@ -43,7 +44,8 @@ let components = [
   switches,
   topTip,
   midTip,
-  fullImg
+  fullImg,
+  userPlayList
 ]
 
 export default {

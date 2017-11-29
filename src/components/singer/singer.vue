@@ -56,11 +56,7 @@
         }
         list.forEach((item, index) => {
           if (index < HOT_SINGER_LEN) {
-            map.hot.items.push(new Singer({
-              id: item.id,
-              name: item.name,
-              avatar: item.img1v1Url
-            }))
+            map.hot.items.push(new Singer(item))
           }
           let key = code(item.name.charAt(0)).toUpperCase()
           if (!map[key]) {
@@ -69,11 +65,7 @@
               items: []
             }
           }
-          map[key].items.push(new Singer({
-            id: item.id,
-            name: item.name,
-            avatar: item.img1v1Url
-          }))
+          map[key].items.push(new Singer(item))
         })
         let nor = []
         let hots = []

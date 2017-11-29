@@ -8,11 +8,17 @@ const state = {
   singer: {},
   playing: false,
   fullScreen: false,
+  // 播放列表
   playList: [],
   mode: playMode.sequence,
   currentIndex: -1,
+  // 推荐歌单详情
   disc: {},
+  // 用户歌单详情
   userDisc: {},
+  // 用户歌单
+  userPlayList: [],
+  // 排行列表
   topList: [],
   searchHistory: getHistory(saveTypes.searchHistory),
   favorite: [],

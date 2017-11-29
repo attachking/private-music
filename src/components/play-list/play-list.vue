@@ -187,9 +187,6 @@
         transform: translate3d(0, 100%, 0);
       }
     }
-    &.list-fade-enter{
-
-    }
     .list-wrapper{
       position: absolute;
       left: 0;

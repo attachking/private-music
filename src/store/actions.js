@@ -94,7 +94,7 @@ export const deleteSongsList = function({commit, state}) {
   commit(types.SET_PLAYLIST, [])
 }
 
-// 添加到我喜欢
+// 添加到/删除我喜欢
 export const toggleFavorite = function({commit, state}, song) {
   let index = state.favorite.findIndex(item => song.id === item.id)
   post('/user/like', {
@@ -103,6 +103,7 @@ export const toggleFavorite = function({commit, state}, song) {
   }).then(data => {
     if (data.data.code === ERR_OK) {
       getFavoriteList({commit, state}, data.data.playlistId)
+      setUserPlayList({commit, state})
     }
   })
 }
@@ -116,9 +117,20 @@ export const getFavoriteList = function({commit}, id) {
     id: localStorage.getItem(saveTypes.favoriteId)
   }).then(data => {
     if (data.data.code === ERR_OK) {
-      commit(types.SET_FAVORITE, data.data.playlist.tracks.map(item => {
-        return new Song(item)
-      }))
+      commit(types.SET_FAVORITE, data.data.playlist.tracks.map(item => new Song(item)))
+    }
+  })
+}
+
+// 用户歌单
+export const setUserPlayList = function({commit, state}) {
+  post('/user/playlist', {}).then(data => {
+    if (data.data.code === ERR_OK) {
+      commit(types.SET_USER_PLAY_LIST, data.data.playlist)
+      localStorage.setItem(saveTypes.favoriteId, data.data.playlist[0].id)
+      if (!state.favorite.length) {
+        getFavoriteList({commit, state})
+      }
     }
   })
 }

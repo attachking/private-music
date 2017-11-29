@@ -2,15 +2,14 @@
   <div class="rank" ref="rank">
     <scroll :data="topList" class="toplist" ref="topList">
       <div class="recommend-list">
-        <h1 class="list-title">精品歌单</h1>
-        <ul>
+        <ul class="list">
           <li v-for="(val, key) in topList" class="item" @click="selectItem(val)">
             <div class="icon">
-              <img width="60" height="60" v-lazy="val.coverImgUrl">
+              <img width="60" height="60" v-lazy="val.img">
             </div>
             <div class="text">
               <h2 class="name" v-html="val.name"></h2>
-              <p class="desc">{{val.copywriter}}</p>
+              <p class="desc">{{val.desc}}</p>
             </div>
           </li>
         </ul>
@@ -25,7 +24,6 @@
 <script>
   import {playListMixin} from '../../common/js/mixin'
   import {post} from '../../utils/http'
-  import {ERR_OK} from '../../utils/config'
   import {mapMutations} from 'vuex'
 
   export default {
@@ -40,10 +38,10 @@
     },
     methods: {
       getTopList() {
-        post('/playlist/highQuality', {}).then(res => {
-          if (res.data.code === ERR_OK) {
-            this.topList = res.data.playlists
-          }
+        post('/top/list', {
+          limit: 20
+        }).then(res => {
+          this.topList = res
         })
       },
       handlePlayList(list) {
@@ -74,6 +72,9 @@
     width: 100%;
     top: 88px;
     bottom: 0;
+    .list{
+      padding-top: 20px;
+    }
     .toplist {
       height: 100%;
       overflow: hidden;

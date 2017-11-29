@@ -2,21 +2,33 @@ import {post} from '../../utils/http'
 import {ERR_OK} from '../../utils/config'
 
 export class Singer {
-  constructor({id, name, avatar}) {
+  constructor({id, name, img1v1Url}) {
     this.id = id
     this.name = name
-    this.avatar = avatar
+    this.avatar = img1v1Url
   }
 }
 
 export class Song {
   constructor(opts) {
     this.id = opts.id
-    this.singer = opts.singer || opts.ar.map(item => item.name).join('/')
-    this.name = opts.name || opts.name
+    if (opts.singer) {
+      this.singer = opts.singer
+    } else if (opts.ar) {
+      this.singer = opts.ar.map(item => item.name).join('/')
+    } else if (opts.artists) {
+      this.singer = opts.artists.map(item => item.name).join('/')
+    }
+    this.name = opts.name
     this.album = opts.album || opts.al.name
     this.duration = opts.duration || opts.dt
-    this.image = opts.image || opts.al.picUrl
+    if (opts.image) {
+      this.image = opts.image
+    } else if (opts.al) {
+      this.image = opts.al.picUrl
+    } else if (opts.album && opts.album.artist) {
+      this.image = opts.album.artist.img1v1Url
+    }
     opts.url && (this.url = opts.url)
   }
 
@@ -64,28 +76,6 @@ export class Song {
       return Promise.reject(err)
     })
   }
-}
-
-export function createSong(musicData) {
-  return new Song({
-    id: musicData.songid,
-    mid: musicData.songmid,
-    singer: filterSinger(musicData.singer),
-    name: musicData.songname,
-    album: musicData.albumname,
-    duration: musicData.interval,
-    image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
-    url: `http://ws.stream.qqmusic.qq.com/${musicData.songid}.m4a?fromtag=46`
-  })
-}
-
-function filterSinger(singer) {
-  let ret = []
-  if (!singer) return '未知'
-  singer.forEach(item => {
-    ret.push(item.name)
-  })
-  return ret.join('/')
 }
 
 export function debounce(func, delay) {

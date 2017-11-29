@@ -2,12 +2,20 @@
   <scroll ref="suggest" class="suggest" :data="result" :pullup="true" :beforeScroll="true" @scrollToEnd="searchMore"
           @beforeScroll="listScroll">
     <ul class="suggest-list">
-      <li @click="selectItem(item)" class="suggest-item" v-for="item in result">
+      <li @click="selectSinger(item)" class="suggest-item" v-for="item in artists">
         <div class="icon">
-          <i :class="getIconCls(item)"></i>
+          <i class="icon-mine"></i>
         </div>
         <div class="name">
-          <p class="text" v-html="getDisplayName(item)"></p>
+          <p class="text">{{item.name}}</p>
+        </div>
+      </li>
+      <li @click="selectSong(item)" class="suggest-item" v-for="item in songs">
+        <div class="icon">
+          <i class="icon-music"></i>
+        </div>
+        <div class="name">
+          <p class="text">{{item.name}}</p>
         </div>
       </li>
       <loading v-show="hasMore" title=""></loading>
@@ -18,13 +26,12 @@
   </scroll>
 </template>
 <script>
-  import {jsonp} from '../../utils/http'
+  import {post} from '../../utils/http'
   import {ERR_OK} from '../../utils/config'
-  import {createSong, Singer} from '../../common/js/clazz'
+  import {Song, Singer} from '../../common/js/clazz'
   import {mapActions, mapMutations} from 'vuex'
 
-  const perpage = 20
-  const TYPE_SINGER = 'singer'
+  const perpage = 30
 
   export default {
     name: 'suggest',
@@ -37,49 +44,67 @@
         type: String,
         default: ''
       },
-      // 点击歌曲是否自动跳转至下一首
+      // 点击歌曲是否自动跳转至下一首(默认跳转)
       autoNext: {
         type: Boolean,
         default: false
       }
     },
+    computed: {
+      result: {
+        get() {
+          return this.artists.concat(this.songs)
+        }
+      }
+    },
     data() {
       return {
         hasMore: true,
-        result: [],
-        page: 1,
+        artists: [],
+        songs: [],
+        page: 0,
         loading: false
       }
     },
     methods: {
-      search(query) {
-        jsonp('https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp', {
-          w: query,
-          p: this.page,
-          perpage: perpage,
-          n: perpage,
-          catZhida: this.showSinger ? 1 : 0,
-          zhidaqu: 1,
-          t: 0,
-          flag: 1,
-          ie: 'utf-8',
-          sem: 1,
-          aggr: 0,
-          remoteplace: 'txt.mqq.all',
-          uin: 0,
-          needNewCode: 1,
-          platform: 'h5'
-        }).then(res => {
-          if (res.code === ERR_OK) {
-            if (res.data.song.curpage === 1) {
-              this.result = this.getResult(res.data)
-              this.$refs.suggest.scrollTo(0, 0)
-            } else {
-              this.result = this.result.concat(this.normalizeSongs(res.data.song.list))
-            }
-            this.checkHasMore(res.data)
-            this.loading = false
+      searchSong(query) {
+        post('/search', {
+          keywords: query,
+          offset: this.page,
+          limit: perpage,
+          type: 1
+        }).then(data => {
+          if (data.data.code === ERR_OK) {
+            this.songs = this.songs.concat(data.data.result.songs.map(item => new Song(item)))
+            this.checkHasMore(data.data.result)
           }
+          this.loading = false
+        }).catch(() => {
+          this.loading = false
+        })
+      },
+      search(query) {
+        Promise.all([post('/search', {
+          keywords: query,
+          offset: 0,
+          limit: 20,
+          type: 100
+        }), post('/search', {
+          keywords: query,
+          offset: this.page,
+          limit: perpage,
+          type: 1
+        })]).then(arr => {
+          if (arr[0].data.code === ERR_OK) {
+            this.artists = arr[0].data.result.artists.map(item => new Singer(item))
+          }
+          if (arr[1].data.code === ERR_OK) {
+            this.songs = this.songs.concat(arr[1].data.result.songs.map(item => new Song(item)))
+            this.checkHasMore(arr[1].data.result)
+          }
+          this.loading = false
+        }).catch(() => {
+          this.loading = false
         })
       },
       searchMore() {
@@ -88,71 +113,35 @@
         }
         this.loading = true
         this.page++
-        this.search(this.query)
+        this.searchSong(this.query)
       },
       listScroll() {
         this.$emit('listScroll')
-      },
-      getIconCls(item) {
-        if (item.type === TYPE_SINGER) {
-          return 'icon-mine'
-        } else {
-          return 'icon-music'
-        }
-      },
-      getDisplayName(item) {
-        if (item.type === TYPE_SINGER) {
-          return item.singername
-        } else {
-          return `${item.name}-${item.singer}`
-        }
       },
       refresh() {
         this.$refs.suggest.refresh()
       },
       checkHasMore(data) {
-        if (!data.song.list.length || data.song.curnum + data.song.curpage * perpage >= data.song.totalnum) {
-          this.hasMore = false
+        this.hasMore = data.songCount >= this.songs.length
+      },
+      selectSong(item) {
+        if (this.autoNext) {
+          // 添加歌曲到下一个，但不播放
+          this.addPlayList(item)
         } else {
-          this.hasMore = true
+          // 添加歌曲到下一个，并播放
+          this.addSong(item)
         }
+        this.$emit('select', item)
       },
-      getResult(data) {
-        let ret = []
-        if (data.zhida && data.zhida.singerid) {
-          ret.push({...data.zhida, type: TYPE_SINGER})
-        }
-        ret = ret.concat(this.normalizeSongs(data.song.list))
-        return ret
-      },
-      normalizeSongs(list) {
-        let ret = []
-        list.forEach((musicData) => {
-          if (musicData.songid && musicData.albummid) {
-            ret.push(createSong(musicData))
+      selectSinger(item) {
+        this.setSinger(item)
+        this.$router.push({
+          name: 'searchSingerDetail',
+          params: {
+            id: item.id
           }
         })
-        return ret
-      },
-      selectItem(item) {
-        if (item.type === TYPE_SINGER) {
-          this.$router.push({
-            name: 'searchSingerDetail',
-            params: {
-              id: item.singermid
-            }
-          })
-          this.setSinger(new Singer({
-            id: item.singermid,
-            name: item.singername
-          }))
-        } else {
-          if (this.autoNext) {
-            this.addPlayList(item)
-          } else {
-            this.addSong(item)
-          }
-        }
         this.$emit('select', item)
       },
       ...mapActions([
@@ -166,10 +155,13 @@
     watch: {
       query(newVal) {
         if (newVal !== '') {
-          this.page = 1
-          this.result = []
+          this.page = 0
           this.hasMore = true
-          this.search(newVal)
+          if (this.autoNext) {
+            this.searchSong(newVal)
+          } else {
+            this.search(newVal)
+          }
         }
       }
     }

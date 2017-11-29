@@ -9,6 +9,9 @@
           <div class="back" @click="back">
             <i class="icon-back"></i>
           </div>
+          <div class="more" @click="add(currentSong)">
+            <i class="iconfontcjy cjyicon-more"></i>
+          </div>
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
@@ -86,6 +89,7 @@
       </div>
     </transition>
     <play-list v-model="showPlayList"></play-list>
+    <user-play-list v-model="userPlayListShow" :song="addSong"></user-play-list>
     <audio :src="currentSong.url" ref="audio" @play="ready" @timeupdate="updateTime" @error="error" @ended="end"></audio>
   </div>
 </template>
@@ -108,7 +112,9 @@
         currentLyric: null,
         currentShow: 'cd',
         currentLineNum: 0,
-        playingLyric: ''
+        playingLyric: '',
+        userPlayListShow: false,
+        addSong: {}
       }
     },
     computed: {
@@ -385,6 +391,10 @@
           return 'icon-favorite'
         }
       },
+      add(song) {
+        this.userPlayListShow = true
+        this.addSong = song
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlaying: 'SET_PLAYING',
@@ -481,6 +491,18 @@
             font-size: @font-size-large-x;
             color: @color-theme;
             transform: rotate(-90deg);
+          }
+        }
+        .more{
+          position: absolute;
+          top: 0;
+          right: 6px;
+          z-index: 50;
+          width: 45px;
+          height: 45px;
+          .iconfontcjy{
+            color: @color-theme;
+            font-size: 42px;
           }
         }
         .title {
@@ -734,7 +756,6 @@
       }
     }
   }
-
   @keyframes rotate {
     0% {
       transform: rotate(0);

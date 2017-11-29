@@ -58,6 +58,9 @@ const mutations = {
   },
   [types.SET_USER_DISC](state, o) {
     state.userDisc = o
+  },
+  [types.SET_USER_PLAY_LIST](state, o) {
+    state.userPlayList = o
   }
 }
 

@@ -31,3 +31,5 @@ export const SET_ADD_SONG_SHOW = 'SET_ADD_SONG_SHOW'
 export const SET_CONFIRM_SHOW = 'SET_CONFIRM_SHOW'
 
 export const SET_USER_DISC = 'SET_USER_DISC'
+
+export const SET_USER_PLAY_LIST = 'SET_USER_PLAY_LIST'

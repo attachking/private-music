@@ -7,7 +7,8 @@
   import {post} from '../../utils/http'
   import {ERR_OK} from '../../utils/config'
   import {Song} from '../../common/js/clazz'
-  import {mapGetters} from 'vuex'
+  import {mapGetters, mapActions} from 'vuex'
+  import {saveTypes} from '../../common/js/storage'
 
   export default {
     data() {
@@ -20,8 +21,14 @@
     computed: {
       ...mapGetters([
         'playList',
-        'userDisc'
-      ])
+        'userDisc',
+        'favorite'
+      ]),
+      isFavorite: {
+        get() {
+          return this.$route.params.id.toString() === localStorage.getItem(saveTypes.favoriteId).toString()
+        }
+      }
     },
     created() {
       if (!this.userDisc.id) {
@@ -33,6 +40,9 @@
       }
     },
     methods: {
+      ...mapActions([
+        'getFavoriteList'
+      ]),
       getDetail() {
         post('/playlist/detail', {
           id: this.$route.params.id
@@ -40,9 +50,7 @@
           if (data.data.code === ERR_OK) {
             this.title = data.data.playlist.name
             this.coverImgUrl = data.data.playlist.coverImgUrl
-            this.songs = data.data.playlist.tracks.map(item => {
-              return new Song(item)
-            })
+            this.songs = data.data.playlist.tracks.map(item => new Song(item))
           }
         })
       },
@@ -54,6 +62,9 @@
         }).then(data => {
           if (data.data.code === ERR_OK) {
             this.getDetail()
+            if (this.isFavorite) {
+              this.getFavoriteList()
+            }
           }
         })
       }

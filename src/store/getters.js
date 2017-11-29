@@ -31,3 +31,5 @@ export const addSongShow = state => state.addSongShow
 export const confirmShow = state => state.confirmShow
 
 export const userDisc = state => state.userDisc
+
+export const userPlayList = state => state.userPlayList

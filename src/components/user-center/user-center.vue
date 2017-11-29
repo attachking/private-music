@@ -4,6 +4,9 @@
       <div class="back" @click="back">
         <i class="icon-back"></i>
       </div>
+      <div class="exit" @click="showConfirmExit">
+        <span>注销</span>
+      </div>
       <div class="title">
         <p>{{nickname}}</p>
       </div>
@@ -20,11 +23,11 @@
         </span>
       </div>
       <div class="list-wrapper" ref="listWrapper">
-        <scroll ref="scroll" class="list-scroll" :data="discList" v-if="currentIndex === 0">
+        <scroll ref="scroll" class="list-scroll" :data="userPlayList" v-if="currentIndex === 0">
           <div class="list-inner">
             <div class="recommend-list">
               <ul>
-                <li v-for="(val, key) in discList" class="item" @click="itemSelect(val)">
+                <li v-for="(val, key) in userPlayList" class="item" @click="itemSelect(val)">
                   <div class="icon">
                     <img width="60" height="60" v-lazy="val.coverImgUrl">
                   </div>
@@ -35,7 +38,7 @@
                 </li>
               </ul>
             </div>
-            <div class="loading-container" v-show="loading">
+            <div class="loading-container" v-show="!userPlayList.length">
               <loading></loading>
             </div>
           </div>
@@ -50,6 +53,7 @@
         <no-result :title="noResultDesc"></no-result>
       </div>
       <confirm ref="confirm" @confirm="clearAll" text="是否清空播放记录" confirmBtnText="清空"></confirm>
+      <confirm ref="confirmExit" @confirm="exit" text="确定注销？" confirmBtnText="注销"></confirm>
       <router-view></router-view>
     </div>
   </transition>
@@ -59,7 +63,7 @@
   import {playMode, ERR_OK} from '../../utils/config'
   import {playListMixin} from '../../common/js/mixin'
   import {post} from '../../utils/http'
-  import {saveTypes, setUser} from '../../common/js/storage'
+  import {setUser, signOut} from '../../common/js/storage'
 
   export default {
     mixins: [playListMixin],
@@ -74,15 +78,14 @@
           }
         ],
         currentIndex: 0,
-        discList: [],
-        loading: true,
         nickname: ''
       }
     },
     computed: {
       ...mapGetters([
         'playHistory',
-        'favorite'
+        'favorite',
+        'userPlayList'
       ]),
       noResultDesc: {
         get() {
@@ -91,7 +94,7 @@
       },
       noResult: {
         get() {
-          return this.currentIndex === 0 ? !this.discList.length : !this.playHistory.length
+          return this.currentIndex === 0 ? !this.userPlayList.length : !this.playHistory.length
         }
       }
     },
@@ -99,8 +102,7 @@
       ...mapActions([
         'selectPlay',
         'deleteHistory',
-        'removeHistory',
-        'getFavoriteList'
+        'removeHistory'
       ]),
       ...mapMutations({
         setMode: 'SET_MODE',
@@ -137,24 +139,8 @@
       showConfirm() {
         this.$refs.confirm.show()
       },
-      clearAll() {
-        if (this.currentIndex === 0) {
-          this.removeFavoriteList()
-        } else {
-          this.removeHistory()
-        }
-      },
-      getDiscList() {
-        post('/user/playlist', {}).then(data => {
-          if (data.data.code === ERR_OK) {
-            this.loading = false
-            this.discList = data.data.playlist
-            localStorage.setItem(saveTypes.favoriteId, data.data.playlist[0].id)
-            if (!this.favorite.length) {
-              this.getFavoriteList()
-            }
-          }
-        })
+      showConfirmExit() {
+        this.$refs.confirmExit.show()
       },
       itemSelect(val) {
         this.setUserDisc(val)
@@ -175,6 +161,15 @@
             this.nickname = data.data.profile.nickname
           }
         })
+      },
+      clearAll() {
+        this.removeHistory()
+      },
+      exit() {
+        signOut()
+        this.$router.push({
+          name: 'recommend'
+        })
       }
     },
     watch: {
@@ -183,19 +178,10 @@
           this.$refs.playList && this.$refs.playList.refresh()
           this.$refs.listWrapper.style.top = newVal === 0 ? '100px' : '170px'
         }, 20)
-      },
-      favorite(newVal, oldVal) {
-        if (newVal.length !== oldVal.length) {
-          this.getDiscList()
-        }
       }
     },
     mounted() {
-      this.getDiscList()
       this.getUserDetail()
-    },
-    activated() {
-      this.getDiscList()
     }
   }
 </script>
@@ -230,6 +216,18 @@
         padding: 10px;
         font-size: @font-size-large-x;
         color: @color-theme;
+      }
+    }
+    .exit{
+      position: absolute;
+      top: 0;
+      right: 6px;
+      z-index: 50;
+      span{
+        display: inline-block;
+        padding: 15px 10px 0 0;
+        color: @color-theme;
+        font-size: 14px;
       }
     }
     .switches-wrapper {

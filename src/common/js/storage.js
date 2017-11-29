@@ -132,3 +132,8 @@ export function signOut() {
   s.removeItem(saveTypes.cookies)
   s.removeItem(saveTypes.user)
 }
+
+// 用户是否登录
+export function isLogin() {
+  return !!getUser().id
+}
