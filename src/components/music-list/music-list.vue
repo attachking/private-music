@@ -14,9 +14,9 @@
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
-    <scroll :data="songs" :probe-type="3" :listen-scroll="true" @scroll="scroll" @end="transitionend" class="list" ref="list">
+    <scroll :data="songs" :probe-type="3" :listen-scroll="true" @scroll="scroll" class="list" ref="list">
       <div class="song-list-wrapper">
-        <songs-list :rank="rank" :songs="songs" @select="select" @delete="selectDelete" :del="del"></songs-list>
+        <songs-list :rank="rank" :songs="songs" @select="select" @delete="selectDelete" :del="del" @end="transitionend"></songs-list>
       </div>
       <div v-show="!songs.length" class="loading-container">
         <loading></loading>
