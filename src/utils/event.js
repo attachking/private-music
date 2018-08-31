@@ -14,11 +14,11 @@ class Event {
   $emit(name) {
     if (typeof name === 'undefined') return this
     if (typeof this._listener[name] === 'undefined') {
-      _register.apply(this, name)
+      _register.call(this, name)
     }
     for (let i = 0; i < this._listener[name].length; i++) {
       if (typeof this._listener[name][i] === 'function') {
-        this._listener[name][i].apply(this, arguments.slice(1))
+        this._listener[name][i].apply(this, Array.prototype.slice.call(arguments).slice(1))
       }
     }
     return this
@@ -26,7 +26,7 @@ class Event {
 
   $on(name, fn) {
     if (typeof this._listener[name] === 'undefined') {
-      _register.apply(this, name)
+      _register.call(this, name)
     }
     for (let i = 0; i < this._listener[name].length; i++) {
       if (this._listener[name] === fn) {

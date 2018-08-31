@@ -3,7 +3,7 @@ export const ERR_OK = 200
 
 export const ERR_REFUSE = 502
 
-export const AGENT = 'http://60.205.177.230:3000'
+export const AGENT = 'http://localhost'
 
 // 播放模式
 export const playMode = {
